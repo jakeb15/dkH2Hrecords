@@ -28,11 +28,14 @@ using namespace std;
 void getWebPage(char* s, char * temp);
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
 void Hockey(string gameInfo,string gameName, int digits,std::vector<std::string> AllObservedPlayers);
-void Basketball(string gameInfo, string gameName, int digits,std::vector<std::string> AllObservedPlayers);
+void Basketball(string gameInfo, string gameName, int digits,std::vector<std::string> AllObservedPlayers,vector<Player> LIST);
 void Baseball(string gameInfo,string gameName,int digits,std::vector<std::string> AllObservedPlayers);
-void Controller(bool NHL, bool NBA, bool MLB);
+void Controller(bool NHL, bool NBA, bool MLB, vector<Player> LIST);
 std::vector<string> UniversalPlayerDatabase();
 std::vector<Player> playerRecords(string sport);
+
+//load a list of players that was last seen into an array. Used so I can see who is new from my last search and quickly find them
+std::vector<Player> LastListofPlayers();
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -40,14 +43,28 @@ int _tmain(int argc, _TCHAR* argv[])
 	bool NHL = false;
 	bool NBA = true;
 	bool MLB = false;
+	ofstream eraseList;
+	vector<Player> LIST;
+
+
 	while(true){
 		if(GetAsyncKeyState(0xC0)){
 			system("cls");
-			Controller(NHL,NBA,MLB);
+			LIST = LastListofPlayers();
+		
+			//erase list
+			eraseList.open("C:\\progData\\Players\\000LastListGrabbed",std::ofstream::out );
+			eraseList.close();
+
+			Controller(NHL,NBA,MLB,LIST);
 			Sleep(1500);
 			cout<<endl << "waiting.."<<endl;
 		}
 	}
+
+	
+	
+
 	
 	return 0;
 }
@@ -77,7 +94,7 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return written;
 }
 
-void Controller(bool NHL, bool NBA, bool MLB){
+void Controller(bool NHL, bool NBA, bool MLB,vector<Player> LIST){
 	cout <<"********grabbing Web Data**********"<<endl;
 	getWebPage("https://www.draftkings.com/contest-lobby","DKLobbyData.txt");
 	cout << "+++++++++Web Data Grabbed+++++++"<<endl;
@@ -91,6 +108,11 @@ void Controller(bool NHL, bool NBA, bool MLB){
 	int triple = 26; // refers to $100
 
 	std::vector<std::string> AllObservedPlayers = UniversalPlayerDatabase();
+
+	//erases Last Player list so that a new one can be wrote to
+	ofstream eraseFile;
+	eraseFile.open("C:\\progData\\Players\\000LastListGrabbed",std::ofstream::out);
+	eraseFile.close();
 
 
 	while(getline(infile,line)){
@@ -111,15 +133,15 @@ void Controller(bool NHL, bool NBA, bool MLB){
 			}
 			if(NBA==true){
 				cout << "************NBA $1 ************"<<endl;
-				Basketball(line,"NBA $1 Head-to-Head vs. ",single,AllObservedPlayers);
+				Basketball(line,"NBA $1 Head-to-Head vs. ",single,AllObservedPlayers,LIST);
 				cout << "************NBA $2 ************"<<endl;
-				Basketball(line,"NBA $2 Head-to-Head vs. ",single,AllObservedPlayers);
+				Basketball(line,"NBA $2 Head-to-Head vs. ",single,AllObservedPlayers,LIST);
 				cout << "************NBA $5 ************"<<endl;
-				Basketball(line,"NBA $5 Head-to-Head vs. ",single,AllObservedPlayers);
+				Basketball(line,"NBA $5 Head-to-Head vs. ",single,AllObservedPlayers,LIST);
 				cout << "************NBA $10 ************"<<endl;
-				Basketball(line,"NBA $10 Head-to-Head vs. ",duble,AllObservedPlayers);
+				Basketball(line,"NBA $10 Head-to-Head vs. ",duble,AllObservedPlayers,LIST);
 				cout << "************NBA $20 ************"<<endl;
-				Basketball(line,"NBA $20 Head-to-Head vs. ",duble,AllObservedPlayers);
+				Basketball(line,"NBA $20 Head-to-Head vs. ",duble,AllObservedPlayers,LIST);
 			}
 			if(MLB==true){
 				cout << "************MLB $1 ************"<<endl;
@@ -237,7 +259,8 @@ void Hockey(string gameInfo,string gameName,int digits,std::vector<std::string> 
 	myFile.close();
 }
 
-void Basketball(string gameInfo,string gameName,int digits,std::vector<std::string> AllObservedPlayers){
+
+void Basketball(string gameInfo,string gameName,int digits,std::vector<std::string> AllObservedPlayers, vector<Player> list){
 	string player = "";
 	string data ="";
 	int pos = 0;
@@ -251,10 +274,16 @@ void Basketball(string gameInfo,string gameName,int digits,std::vector<std::stri
 	GetConsoleScreenBufferInfo(h, &csbiInfo);
 	wOldColorAttrs = csbiInfo.wAttributes;
 	//////////////////////////////////////////
+	//Temp now equals all players from previous find
+	vector<Player> Temp = list;
 
-	//new code
+	
+
 	ofstream lastGrab;
 	lastGrab.open("C:\\progData\\Players\\000LastListGrabbed",std::ofstream::out  | std::ofstream::app);
+
+	
+
 	////////////////////////
 
 	std::vector<Player> playerDB  = playerRecords("00NBAplayerRecords");
@@ -286,8 +315,28 @@ void Basketball(string gameInfo,string gameName,int digits,std::vector<std::stri
 			}
 		}
 		
-		cout <<setw(20) <<player;
+		///checks to see if player exists from last search//
+		bool pFound = false;
+		for (std::vector<Player>::iterator it = Temp.begin() ; it != Temp.end(); ++it){
+			if(player.compare(it->get_name())==0 && pFound == false){
+				//cout <<setw(20) <<player;
+				pFound = true;
+			}
+		
+		}
+
+		if(pFound == true){
+			cout <<setw(20) <<player;
+		}
+		else{
+			SetConsoleTextAttribute ( h,  FOREGROUND_GREEN  | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY );
+			cout <<setw(20) <<player;
+			SetConsoleTextAttribute ( h, wOldColorAttrs);
+		}
+		
 		lastGrab << player <<endl;
+		///End
+
 		if(oneGame ==true){
 			cout << "*";
 		}
@@ -303,6 +352,7 @@ void Basketball(string gameInfo,string gameName,int digits,std::vector<std::stri
 			cout << "(New)";
 			myFile << player <<endl;
 		}
+
 		
 		for (std::vector<Player>::iterator it = playerDB.begin() ; it != playerDB.end(); ++it){
 			if(it->get_name().compare(player)==0){
@@ -420,13 +470,14 @@ std::vector<Player> playerRecords(string sport){
 	string TotPTS = "";
 	string skillLVL = "";
 	string PlusNegScore = "";
-	Player temp;
+	//Player temp;
 	int placeHolder = 0;
 	std::vector<Player> winHistorydata;
 	string sportRecord = "C:\\progData\\Players\\" + sport;
 	ifstream WinHistory(sportRecord);//file where all my winhistory is kept formatted like [player] [+/-] [c:gameCount]
 	// parse win file into Player class	
 	while(getline(WinHistory,templine)){
+		Player* temp = new Player();
 		//Player Name
 		for(int x = 0; x <templine.length() ; x++){
 				if(templine[x]!=' '){
@@ -492,14 +543,14 @@ std::vector<Player> playerRecords(string sport){
 		
 		}
 		//Name::AverageScore::Gamecount::TotPts::SkillLVL::h2hScore
-			temp.set_Name(playerName);
-			temp.setPTAverage(atof(AVGScore.c_str()));
-			temp.set_playCount(atoi(GameCount.c_str()));
-			temp.setTotalPts(atof(TotPTS.c_str()));
-			temp.setskillLevel(atoi(skillLVL.c_str()));
-			temp.setPlusNegScore(atoi(PlusNegScore.c_str()));
+			temp->set_Name(playerName);
+			temp->setPTAverage(atof(AVGScore.c_str()));
+			temp->set_playCount(atoi(GameCount.c_str()));
+			temp->setTotalPts(atof(TotPTS.c_str()));
+			temp->setskillLevel(atoi(skillLVL.c_str()));
+			temp->setPlusNegScore(atoi(PlusNegScore.c_str()));
 			//temp.set_wins(atoi(PlayerScore.c_str()));
-			winHistorydata.push_back(temp); // loads Database 
+			winHistorydata.push_back(*temp); // loads Database 
 			playerName="";
 			AVGScore="";
 			TotPTS ="";
@@ -510,4 +561,30 @@ std::vector<Player> playerRecords(string sport){
 		WinHistory.close();
 
 		return winHistorydata;
+}
+
+std::vector<Player> LastListofPlayers(){
+	ifstream LastPlayerList("C:\\progData\\Players\\000LastListGrabbed");
+	string templine = "";
+	string player = "";
+	int pos = 0;
+	vector<Player> List;
+	Player tempPlayer;
+
+	while(getline(LastPlayerList,templine)){
+		for(int x = 0; x <templine.length() ; x++){
+			if(templine[x]!='\n'){
+				player = player + templine[x];
+			}	
+			else{
+				x = x + templine.length();
+			}
+		}
+		tempPlayer.set_Name(player);
+		List.push_back(tempPlayer);
+		player = "";
+	}
+
+
+return List;
 }
