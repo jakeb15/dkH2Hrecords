@@ -28,7 +28,7 @@ using namespace std;
 void getWebPage(char* s, char * temp);
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
 void Hockey(string gameInfo,string gameName, int digits,std::vector<std::string> AllObservedPlayers);
-void Basketball(string gameInfo, string gameName, int digits,std::vector<std::string> AllObservedPlayers,vector<Player> LIST);
+void Basketball(string gameInfo, string gameName, int digits,std::vector<std::string> AllObservedPlayers,vector<Player> LIST,string sport);
 void Baseball(string gameInfo,string gameName,int digits,std::vector<std::string> AllObservedPlayers);
 void Controller(bool NHL, bool NBA, bool MLB, vector<Player> LIST);
 std::vector<string> UniversalPlayerDatabase();
@@ -40,9 +40,12 @@ std::vector<Player> LastListofPlayers();
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	/////settings....1 sport at a time.///////
 	bool NHL = false;
-	bool NBA = true;
-	bool MLB = false;
+	bool NBA = false;
+	bool MLB = true;
+	//////////////////////
+
 	ofstream eraseList;
 	vector<Player> LIST;
 
@@ -95,6 +98,38 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 }
 
 void Controller(bool NHL, bool NBA, bool MLB,vector<Player> LIST){
+	string sport = "hello"; // temp
+	string gamestringName1;
+	string gamestringName2;
+	string gamestringName3;
+	string gamestringName4;
+	string gamestringName5;
+
+	if(MLB==true){
+		sport = "00MLBplayerRecords";
+		gamestringName1 = "MLB $1 Head-to-Head vs. ";
+		gamestringName2 = "MLB $2 Head-to-Head vs. ";
+		gamestringName3 = "MLB $5 Head-to-Head vs. ";
+		gamestringName4 = "MLB $10 Head-to-Head vs. ";
+		gamestringName5 = "MLB $20 Head-to-Head vs. ";
+	}
+	else if(NBA == true){
+		sport = "00NBAplayerRecords";
+		gamestringName1 = "NBA $1 Head-to-Head vs. ";
+		gamestringName2 = "NBA $2 Head-to-Head vs. ";
+		gamestringName3 = "NBA $5 Head-to-Head vs. ";
+		gamestringName4 = "NBA $10 Head-to-Head vs. ";
+		gamestringName5 = "NBA $20 Head-to-Head vs. ";
+	}
+	else if(NHL == true){
+		sport = "00NHLplayerRecords";
+		gamestringName1 = "NHL $1 Head-to-Head vs. ";
+		gamestringName2 = "NHL $2 Head-to-Head vs. ";
+		gamestringName3 = "NHL $5 Head-to-Head vs. ";
+		gamestringName4 = "NHL $10 Head-to-Head vs. ";
+		gamestringName5 = "NHL $20 Head-to-Head vs. ";
+	}
+	
 	cout <<"********grabbing Web Data**********"<<endl;
 	getWebPage("https://www.draftkings.com/contest-lobby","DKLobbyData.txt");
 	cout << "+++++++++Web Data Grabbed+++++++"<<endl;
@@ -119,43 +154,18 @@ void Controller(bool NHL, bool NBA, bool MLB,vector<Player> LIST){
 		found = line.find("var packagedContests");
 		if(found > 0){
 			cout << "****Searching Head-to-Head games......*******"<<endl;
-			if(NHL==true){
-				cout << "************NHL $1 ************"<<endl;
-				Hockey(line,"NHL $1 Head-to-Head vs. ",single,AllObservedPlayers);
-				cout << "************NHL $2 ************"<<endl;
-				Hockey(line,"NHL $2 Head-to-Head vs. ",single,AllObservedPlayers);
-				cout << "************NHL $5 ************"<<endl;
-				Hockey(line,"NHL $5 Head-to-Head vs. ",single,AllObservedPlayers);
-				cout << "************NHL $10 ************"<<endl;
-				Hockey(line,"NHL $10 Head-to-Head vs. ",duble,AllObservedPlayers);
-				cout << "************NHL $20 ************"<<endl;
-				Hockey(line,"NHL $20 Head-to-Head vs. ",duble,AllObservedPlayers);
-			}
-			if(NBA==true){
-				cout << "************NBA $1 ************"<<endl;
-				Basketball(line,"NBA $1 Head-to-Head vs. ",single,AllObservedPlayers,LIST);
-				cout << "************NBA $2 ************"<<endl;
-				Basketball(line,"NBA $2 Head-to-Head vs. ",single,AllObservedPlayers,LIST);
-				cout << "************NBA $5 ************"<<endl;
-				Basketball(line,"NBA $5 Head-to-Head vs. ",single,AllObservedPlayers,LIST);
-				cout << "************NBA $10 ************"<<endl;
-				Basketball(line,"NBA $10 Head-to-Head vs. ",duble,AllObservedPlayers,LIST);
-				cout << "************NBA $20 ************"<<endl;
-				Basketball(line,"NBA $20 Head-to-Head vs. ",duble,AllObservedPlayers,LIST);
-			}
-			if(MLB==true){
-				cout << "************MLB $1 ************"<<endl;
-				Baseball(line,"MLB $1 Head-to-Head vs. ",single,AllObservedPlayers);
-				cout << "************MLB $2 ************"<<endl;
-				Baseball(line,"MLB $2 Head-to-Head vs. ",single,AllObservedPlayers);
-				cout << "************MLB $5 ************"<<endl;
-				Baseball(line,"MLB $5 Head-to-Head vs. ",single,AllObservedPlayers);
-				cout << "************MLB $10 ************"<<endl;
-				Baseball(line,"MLB $10 Head-to-Head vs. ",duble,AllObservedPlayers);
-				cout << "************MLB $20 ************"<<endl;
-				Baseball(line,"MLB $20 Head-to-Head vs. ",duble,AllObservedPlayers);
-			}
-
+			
+				cout << "************ $1 ************"<<endl;
+				Basketball(line,gamestringName1,single,AllObservedPlayers,LIST,sport);
+				cout << "************ $2 ************"<<endl;
+				Basketball(line,gamestringName2,single,AllObservedPlayers,LIST,sport);
+				cout << "************ $5 ************"<<endl;
+				Basketball(line,gamestringName3,single,AllObservedPlayers,LIST,sport);
+				cout << "************ $10 ************"<<endl;
+				Basketball(line,gamestringName4,duble,AllObservedPlayers,LIST,sport);
+				cout << "************ $20 ************"<<endl;
+				Basketball(line,gamestringName5,duble,AllObservedPlayers,LIST,sport);
+		
 
 		}
 	}
@@ -260,7 +270,7 @@ void Hockey(string gameInfo,string gameName,int digits,std::vector<std::string> 
 }
 
 
-void Basketball(string gameInfo,string gameName,int digits,std::vector<std::string> AllObservedPlayers, vector<Player> list){
+void Basketball(string gameInfo,string gameName,int digits,std::vector<std::string> AllObservedPlayers, vector<Player> list,string sport){
 	string player = "";
 	string data ="";
 	int pos = 0;
@@ -286,7 +296,7 @@ void Basketball(string gameInfo,string gameName,int digits,std::vector<std::stri
 
 	////////////////////////
 
-	std::vector<Player> playerDB  = playerRecords("00NBAplayerRecords");
+	std::vector<Player> playerDB  = playerRecords(sport);
 
 	ofstream myFile;
 	myFile.open("C:\\progData\\Players\\00UniversalPlayers",std::ofstream::out | std::ofstream::app);
@@ -358,21 +368,21 @@ void Basketball(string gameInfo,string gameName,int digits,std::vector<std::stri
 			if(it->get_name().compare(player)==0){
 				if(it->getSkillLevel() < 0){
 					SetConsoleTextAttribute ( h,  FOREGROUND_GREEN  | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY );
-					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel() << " avgPts: " <<setw(8)<< it->getPTAverage();
+					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel();
 					SetConsoleTextAttribute ( h, wOldColorAttrs);
 				}
 				else if(it->getSkillLevel() > 5 && it->getPlusNegScore() < 0){
 					SetConsoleTextAttribute ( h,  FOREGROUND_RED  | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY );
-					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel() << " avgPts: " <<setw(8)<< it->getPTAverage();
+					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel();
 					SetConsoleTextAttribute ( h, wOldColorAttrs);
 				}
 				else if(it->get_playCount() > 4 && (it->get_playCount() / 2) > it->getSkillLevel()){
 					SetConsoleTextAttribute ( h,  FOREGROUND_BLUE  | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY );
-					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel() << " avgPts: " <<setw(8)<< it->getPTAverage();
+					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel();
 					SetConsoleTextAttribute ( h, wOldColorAttrs);
 				}
 				else{
-					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel() << " avgPts: " <<setw(8)<< it->getPTAverage();
+					cout  <<"  W/L:" << setw(4)<<it->getPlusNegScore() << " GC:" <<setw(3)<< it->get_playCount() << " " << "sLvL:"<<setw(3)<< it->getSkillLevel();
 				}
 			}
 		}
